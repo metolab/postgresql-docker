@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     git \
     pkg-config \
     libssl-dev \
-    postgresql-server-dev-${POSTGRES_VERSION} \
+    postgresql-server-dev-all \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone and build pg_roaringbitmap
