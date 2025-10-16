@@ -5,7 +5,7 @@ ARG POSTGRES_VERSION
 ENV ROARINGBITMAP_VERSION=0.5.5
 
 WORKDIR /
-RUN apt-get update && apt-get install -y --no-install-recommends curl unzip make gcc postgresql-server-dev-${POSTGRES_VERSION} && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates unzip make gcc postgresql-server-dev-${POSTGRES_VERSION} && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN curl -fsSL -o "v${ROARINGBITMAP_VERSION}.zip" "https://github.com/ChenHuajun/pg_roaringbitmap/archive/refs/tags/v${ROARINGBITMAP_VERSION}.zip"
 RUN unzip -q "v${ROARINGBITMAP_VERSION}.zip" && rm -f "v${ROARINGBITMAP_VERSION}.zip"
 WORKDIR "pg_roaringbitmap-${ROARINGBITMAP_VERSION}"
