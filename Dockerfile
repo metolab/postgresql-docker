@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
 RUN cd /tmp && \
     git clone --depth 1 https://github.com/ChenHuajun/pg_roaringbitmap.git && \
     cd pg_roaringbitmap && \
+    make clean && \
     make USE_PGXS=1 && \
     make install USE_PGXS=1 && \
     cd / && \
