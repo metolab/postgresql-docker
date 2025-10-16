@@ -1,0 +1,95 @@
+name: Build and Push Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      postgres_version:
+        description: 'PostgreSQL version to build'
+        required: true
+        default: '15'
+        type: choice
+        options:
+          - '13'
+          - '14'
+          - '15'
+          - '16'
+          - '17'
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set PostgreSQL version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "POSTGRES_VERSION=${{ github.event.inputs.postgres_version }}" >> $GITHUB_ENV
+          else
+            echo "POSTGRES_VERSION=15" >> $GITHUB_ENV
+          fi
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=${{ env.POSTGRES_VERSION }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          build-args: |
+            POSTGRES_VERSION=${{ env.POSTGRES_VERSION }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: Test the built image
+        if: github.event_name != 'pull_request'
+        run: |
+          docker run -d --name test-postgres \
+            -e POSTGRES_PASSWORD=testpassword \
+            -e POSTGRES_DB=testdb \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.POSTGRES_VERSION }}
+
+          # Wait for PostgreSQL to start
+          sleep 10
+
+          # Test that the extension is available
+          docker exec test-postgres psql -U postgres -d testdb -c "CREATE EXTENSION roaringbitmap; SELECT roaringbitmap_version();"
+
+          # Clean up
+          docker stop test-postgres
+          docker rm test-postgres
