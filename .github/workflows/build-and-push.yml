@@ -92,25 +92,31 @@ jobs:
           # Wait for PostgreSQL to start
           sleep 10
 
-          # Test that the extension is available and functional
+          # Test that the extension is available and functional with simple input/output
           docker exec test-postgres psql -U postgres -d testdb -c "
             -- Test extension exists
             SELECT extname FROM pg_extension WHERE extname = 'roaringbitmap';
 
-            -- Test extension functionality
-            CREATE TABLE test_bitmap (
-              id serial,
-              data roaringbitmap
-            );
+            -- Test basic roaringbitmap input/output
+            SELECT roaringbitmap('{1,100,10}') as bitmap_input;
 
-            INSERT INTO test_bitmap (data) VALUES (rb_build('{1,2,3,4,5}'::integer[]));
+            -- Test bytea input
+            SELECT '\x3a30000001000000000002001000000001000a006400'::roaringbitmap as bytea_input;
 
-            -- Test roaringbitmap functions
-            SELECT rb_cardinality(data) as count FROM test_bitmap;
-            SELECT rb_and(data, rb_build('{1,2,6}'::integer[])) as result FROM test_bitmap;
+            -- Test output format switching
+            SET roaringbitmap.output_format='array';
+            SELECT '{1}'::roaringbitmap as array_output;
 
-            -- Verify extension version
-            SELECT roaringbitmap_version() as version;
+            SET roaringbitmap.output_format='bytea';
+            SELECT '{1}'::roaringbitmap as bytea_output;
+
+            -- Test basic operations
+            SELECT rb_cardinality('{1,2,3}') as cardinality;
+            SELECT rb_to_array('{1,2,3}') as to_array;
+
+            -- Test operators
+            SELECT roaringbitmap('{1,2,3}') | roaringbitmap('{3,4,5}') as or_operation;
+            SELECT roaringbitmap('{1,2,3}') & roaringbitmap('{3,4,5}') as and_operation;
           "
 
           # Clean up
