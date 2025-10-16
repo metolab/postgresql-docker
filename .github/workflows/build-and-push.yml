@@ -6,7 +6,7 @@ on:
       postgres_version:
         description: 'PostgreSQL version to build'
         required: true
-        default: '15'
+        default: '17'
         type: choice
         options:
           - '13'
@@ -92,8 +92,26 @@ jobs:
           # Wait for PostgreSQL to start
           sleep 10
 
-          # Test that the extension is available
-          docker exec test-postgres psql -U postgres -d testdb -c "CREATE EXTENSION roaringbitmap; SELECT roaringbitmap_version();"
+          # Test that the extension is available and functional
+          docker exec test-postgres psql -U postgres -d testdb -c "
+            -- Test extension exists
+            SELECT extname FROM pg_extension WHERE extname = 'roaringbitmap';
+
+            -- Test extension functionality
+            CREATE TABLE test_bitmap (
+              id serial,
+              data roaringbitmap
+            );
+
+            INSERT INTO test_bitmap (data) VALUES (rb_build('{1,2,3,4,5}'::integer[]));
+
+            -- Test roaringbitmap functions
+            SELECT rb_cardinality(data) as count FROM test_bitmap;
+            SELECT rb_and(data, rb_build('{1,2,6}'::integer[])) as result FROM test_bitmap;
+
+            -- Verify extension version
+            SELECT roaringbitmap_version() as version;
+          "
 
           # Clean up
           docker stop test-postgres
