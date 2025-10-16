@@ -14,10 +14,10 @@ This repository provides a PostgreSQL Docker image with the `pg_roaringbitmap` e
 
 - `ghcr.io/your-username/postgres-roaringbitmap:13` - PostgreSQL 13 with pg_roaringbitmap
 - `ghcr.io/your-username/postgres-roaringbitmap:14` - PostgreSQL 14 with pg_roaringbitmap
-- `ghcr.io/your-username/postgres-roaringbitmap:15` - PostgreSQL 15 with pg_roaringbitmap
+- `ghcr.io/your-username/postgres-roaringbitmap:17` - PostgreSQL 15 with pg_roaringbitmap
 - `ghcr.io/your-username/postgres-roaringbitmap:16` - PostgreSQL 16 with pg_roaringbitmap
 - `ghcr.io/your-username/postgres-roaringbitmap:17` - PostgreSQL 17 with pg_roaringbitmap
-- `ghcr.io/your-username/postgres-roaringbitmap:latest` - Latest stable version (PostgreSQL 15)
+- `ghcr.io/your-username/postgres-roaringbitmap:latest` - Latest stable version (PostgreSQL 17)
 
 ## Quick Start
 
@@ -30,7 +30,7 @@ docker run -d \
   -e POSTGRES_PASSWORD=mysecretpassword \
   -e POSTGRES_DB=mydb \
   -p 5432:5432 \
-  ghcr.io/your-username/postgres-roaringbitmap:15
+  ghcr.io/your-username/postgres-roaringbitmap:17
 ```
 
 ### Using Docker Compose
@@ -39,7 +39,7 @@ docker run -d \
 version: '3.8'
 services:
   postgres:
-    image: ghcr.io/your-username/postgres-roaringbitmap:15
+    image: ghcr.io/your-username/postgres-roaringbitmap:17
     environment:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: mydb
@@ -88,11 +88,11 @@ SELECT rb_cardinality(bitmap) FROM example;
 Use the provided build script to build images locally:
 
 ```bash
-# Build with default PostgreSQL version (15)
+# Build with default PostgreSQL version (17)
 ./build.sh
 
 # Build with specific PostgreSQL version
-./build.sh 16
+./build.sh 17
 
 # Build with custom image name
 ./build.sh 15 ghcr.io/your-username/postgres-custom
@@ -106,8 +106,8 @@ Use the provided build script to build images locally:
 ```bash
 # Build with build-arg
 docker build \
-  --build-arg POSTGRES_VERSION=15 \
-  -t postgres-roaringbitmap:15 \
+  --build-arg POSTGRES_VERSION=17 \
+  -t postgres-roaringbitmap:17 \
   .
 
 # Run the built image
@@ -115,7 +115,7 @@ docker run -d \
   --name postgres-test \
   -e POSTGRES_PASSWORD=testpassword \
   -p 5432:5432 \
-  postgres-roaringbitmap:15
+  postgres-roaringbitmap:17
 ```
 
 ## GitHub Actions
