@@ -1,44 +1,19 @@
 ARG POSTGRES_VERSION=15
-FROM postgres:${POSTGRES_VERSION}
+FROM postgres:${POSTGRES_VERSION}-bookworm AS builder
 
-# Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive
+ENV ROARINGBITMAP_VERSION=0.5.5
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    git \
-    pkg-config \
-    libssl-dev \
-    postgresql-server-dev-all \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /
+RUN apt-get update && apt-get install -y curl unzip make gcc postgresql-server-dev-${POSTGRES_VERSION}
+RUN curl -LO "https://github.com/ChenHuajun/pg_roaringbitmap/archive/refs/tags/v${ROARINGBITMAP_VERSION}.zip"
+RUN unzip "v${ROARINGBITMAP_VERSION}.zip"
+WORKDIR "pg_roaringbitmap-${ROARINGBITMAP_VERSION}"
+RUN make -f Makefile_native && make install
 
-# Clone and build pg_roaringbitmap
-RUN cd /tmp && \
-    git clone --depth 1 https://github.com/ChenHuajun/pg_roaringbitmap.git && \
-    cd pg_roaringbitmap && \
-    make clean && \
-    make USE_PGXS=1 && \
-    make install USE_PGXS=1 && \
-    cd / && \
-    rm -rf /tmp/pg_roaringbitmap
+FROM postgres:${POSTGRES_VERSION}-bookworm
+COPY --from=builder /usr/share/postgresql/${POSTGRES_VERSION}/extension/roaringbitmap* /usr/share/postgresql/${POSTGRES_VERSION}/extension/
+COPY --from=builder /usr/lib/postgresql/${POSTGRES_VERSION}/lib/roaringbitmap.so /usr/lib/postgresql/${POSTGRES_VERSION}/lib/
+COPY --from=builder /usr/lib/postgresql/${POSTGRES_VERSION}/lib/bitcode/roaringbitmap /usr/lib/postgresql/${POSTGRES_VERSION}/lib/bitcode/roaringbitmap
+COPY --from=builder /usr/lib/postgresql/${POSTGRES_VERSION}/lib/bitcode/roaringbitmap.index.bc /usr/lib/postgresql/${POSTGRES_VERSION}/lib/bitcode/roaringbitmap.index.bc
 
-# Ensure extension files are in the correct PostgreSQL directory
-RUN find /usr/share/postgresql -name "roaringbitmap.control" -exec dirname {} \; | head -1 | xargs -I {} find {} -name "roaringbitmap*" -exec cp -v {} /usr/share/postgresql/${POSTGRES_VERSION}/extension/ \; && \
-    find /usr/lib/postgresql -name "roaringbitmap.so" -exec dirname {} \; | head -1 | xargs -I {} cp -v {}/*.so /usr/lib/postgresql/${POSTGRES_VERSION}/lib/ 2>/dev/null || true
-
-# Verify extension files are in the correct location
-RUN ls -la /usr/share/postgresql/${POSTGRES_VERSION}/extension/roaringbitmap* && \
-    ls -la /usr/lib/postgresql/${POSTGRES_VERSION}/lib/roaringbitmap* 2>/dev/null || echo "No shared library found"
-
-# Clean up build dependencies
-RUN apt-get remove -y build-essential git pkg-config libssl-dev && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy initialization scripts
-COPY init-extension.sh /docker-entrypoint-initdb.d/init-extension.sh
-RUN chmod +x /docker-entrypoint-initdb.d/init-extension.sh
-
-# Set the default command
-CMD ["postgres"]
+COPY load-extension.sql /docker-entrypoint-initdb.d/
