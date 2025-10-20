@@ -25,7 +25,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: metolab/postgres-roaringbitma
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:

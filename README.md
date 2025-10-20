@@ -15,12 +15,12 @@ This repository provides a PostgreSQL Docker image with the `pg_roaringbitmap` e
 
 ## Available Tags
 
-- `ghcr.io/metolab/postgres-roaringbitma:13` - PostgreSQL 13 with pg_roaringbitmap
-- `ghcr.io/metolab/postgres-roaringbitma:14` - PostgreSQL 14 with pg_roaringbitmap
-- `ghcr.io/metolab/postgres-roaringbitma:15` - PostgreSQL 15 with pg_roaringbitmap
-- `ghcr.io/metolab/postgres-roaringbitma:16` - PostgreSQL 16 with pg_roaringbitmap
-- `ghcr.io/metolab/postgres-roaringbitma:17` - PostgreSQL 17 with pg_roaringbitmap
-- `ghcr.io/metolab/postgres-roaringbitma:latest` - Latest stable version (PostgreSQL 17)
+- `ghcr.io/metolab/postgres-roaringbitmap:13` - PostgreSQL 13 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitmap:14` - PostgreSQL 14 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitmap:15` - PostgreSQL 15 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitmap:16` - PostgreSQL 16 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitmap:17` - PostgreSQL 17 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitmap:latest` - Latest stable version (PostgreSQL 17)
 
 ## Quick Start
 
@@ -33,7 +33,7 @@ docker run -d \
   -e POSTGRES_PASSWORD=mysecretpassword \
   -e POSTGRES_DB=mydb \
   -p 5432:5432 \
-  ghcr.io/metolab/postgres-roaringbitma:17
+  ghcr.io/metolab/postgres-roaringbitmap:17
 ```
 
 ### Using Docker Compose
@@ -42,7 +42,7 @@ docker run -d \
 version: '3.8'
 services:
   postgres:
-    image: ghcr.io/metolab/postgres-roaringbitma:17
+    image: ghcr.io/metolab/postgres-roaringbitmap:17
     environment:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: mydb
@@ -115,7 +115,7 @@ Use the provided build script to build images locally:
 # Build with build-arg
 docker build \
   --build-arg POSTGRES_VERSION=17 \
-  -t postgres-roaringbitma:17 \
+  -t postgres-roaringbitmap:17 \
   .
 
 # Run the built image
@@ -123,7 +123,7 @@ docker run -d \
   --name postgres-test \
   -e POSTGRES_PASSWORD=testpassword \
   -p 5432:5432 \
-  postgres-roaringbitma:17
+  postgres-roaringbitmap:17
 ```
 
 ## Build Optimizations
