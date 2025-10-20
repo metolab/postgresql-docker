@@ -9,15 +9,18 @@ This repository provides a PostgreSQL Docker image with the `pg_roaringbitmap` e
 - Multi-platform support (linux/amd64, linux/arm64)
 - Automatic builds via GitHub Actions
 - Images hosted on GitHub Container Registry (GHCR)
+- Optimized multi-stage build for smaller image size
+- Health checks included for container monitoring
+- Automatic extension creation on database initialization
 
 ## Available Tags
 
-- `ghcr.io/your-username/postgres-roaringbitmap:13` - PostgreSQL 13 with pg_roaringbitmap
-- `ghcr.io/your-username/postgres-roaringbitmap:14` - PostgreSQL 14 with pg_roaringbitmap
-- `ghcr.io/your-username/postgres-roaringbitmap:17` - PostgreSQL 15 with pg_roaringbitmap
-- `ghcr.io/your-username/postgres-roaringbitmap:16` - PostgreSQL 16 with pg_roaringbitmap
-- `ghcr.io/your-username/postgres-roaringbitmap:17` - PostgreSQL 17 with pg_roaringbitmap
-- `ghcr.io/your-username/postgres-roaringbitmap:latest` - Latest stable version (PostgreSQL 17)
+- `ghcr.io/metolab/postgres-roaringbitma:13` - PostgreSQL 13 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitma:14` - PostgreSQL 14 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitma:15` - PostgreSQL 15 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitma:16` - PostgreSQL 16 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitma:17` - PostgreSQL 17 with pg_roaringbitmap
+- `ghcr.io/metolab/postgres-roaringbitma:latest` - Latest stable version (PostgreSQL 17)
 
 ## Quick Start
 
@@ -30,7 +33,7 @@ docker run -d \
   -e POSTGRES_PASSWORD=mysecretpassword \
   -e POSTGRES_DB=mydb \
   -p 5432:5432 \
-  ghcr.io/your-username/postgres-roaringbitmap:17
+  ghcr.io/metolab/postgres-roaringbitma:17
 ```
 
 ### Using Docker Compose
@@ -39,7 +42,7 @@ docker run -d \
 version: '3.8'
 services:
   postgres:
-    image: ghcr.io/your-username/postgres-roaringbitmap:17
+    image: ghcr.io/metolab/postgres-roaringbitma:17
     environment:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: mydb
@@ -47,6 +50,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:
@@ -95,7 +103,7 @@ Use the provided build script to build images locally:
 ./build.sh 17
 
 # Build with custom image name
-./build.sh 15 ghcr.io/your-username/postgres-custom
+./build.sh 15 ghcr.io/metolab/postgres-custom
 
 # Show help
 ./build.sh --help
@@ -107,7 +115,7 @@ Use the provided build script to build images locally:
 # Build with build-arg
 docker build \
   --build-arg POSTGRES_VERSION=17 \
-  -t postgres-roaringbitmap:17 \
+  -t postgres-roaringbitma:17 \
   .
 
 # Run the built image
@@ -115,8 +123,18 @@ docker run -d \
   --name postgres-test \
   -e POSTGRES_PASSWORD=testpassword \
   -p 5432:5432 \
-  postgres-roaringbitmap:17
+  postgres-roaringbitma:17
 ```
+
+## Build Optimizations
+
+This Docker image includes several optimizations for better performance and security:
+
+- **Multi-stage build**: Reduces final image size by excluding build dependencies
+- **Proper layer caching**: Dependencies installed in single layer with proper cleanup
+- **Temporary file cleanup**: Build artifacts and temporary files removed after installation
+- **Health checks**: Built-in health monitoring for container orchestration
+- **Minimal base image**: Uses official PostgreSQL images for security and compatibility
 
 ## GitHub Actions
 
